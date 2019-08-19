@@ -35,8 +35,8 @@ class Preprocess:
             self.data.loc[(self.data.qualitative == "Positive") | (self.data.qualitative == "Positive-High") | (self.data.qualitative == "Positive-Intermediate"), 'bind_class'] = 'Positive'
             self.data.loc[(self.data.qualitative == "Negative") | (self.data.qualitative == "Positive-Low"), 'bind_class'] = 'Negative'
 
-        self.data['valid'] = self.data['peptide'].apply(lambda x: str(x).islower())
-        self.data = self.data[self.data.valid == False]
+        self.data['valid'] = self.data['peptide'].apply(lambda x: (str(x).isupper() and str(x).isalpha()))
+        self.data = self.data[self.data.valid == True]
 
         self.data = self.data[self.data["peptide"].apply(lambda x: "+" not in x)]
         self.data = self.data[self.data["mhc_allele"].apply(lambda x: "/" not in x)]
@@ -48,6 +48,7 @@ class Preprocess:
         # only for class II
         # self.data = self.data[self.data["mhc_allele"].apply(lambda x: (("H2-IA" in x) or ("DRB1*" in x) or ("DRB5*" in x) or ("DRB4*" in x) or ("DRB3*" in x)))]
 
+        print(self.data.mhc_allele.unique())
         print(self.data.bind_class.value_counts())
 
 
