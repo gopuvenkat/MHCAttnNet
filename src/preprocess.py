@@ -4,6 +4,9 @@ import math
 import numpy as np
 import pandas as pd
 
+from alleles_I import c1_map
+from alleles_II import c2_map
+
 class Preprocess:
     def __init__(self, file_name, header_index, relevant_class, relevant_orgs, is_quan):
         self.file_name = file_name
@@ -45,11 +48,15 @@ class Preprocess:
         # only for class I
         # self.data = self.data[self.data["mhc_allele"].apply(lambda x: (("HLA-A*" in x) or ("HLA-B*" in x) or ("HLA-C*" in x)))]
         # self.data = self.data[self.data["mhc_allele"].apply(lambda x: "HLA-A*30:14L" not in x)]
+        # self.data['mhc_amino_acid'] = self.data.mhc_allele.apply(lambda x: c1_map.get(x, x))
         # only for class II
-        # self.data = self.data[self.data["mhc_allele"].apply(lambda x: (("H2-IA" in x) or ("DRB1*" in x) or ("DRB5*" in x) or ("DRB4*" in x) or ("DRB3*" in x)))]
+        self.data = self.data[self.data["mhc_allele"].apply(lambda x: (("H2-IA" in x) or ("DRB1*" in x) or ("DRB5*" in x) or ("DRB4*" in x) or ("DRB3*" in x)))]
+        self.data['mhc_amino_acid'] = self.data.mhc_allele.apply(lambda x: c2_map.get(x, x))
 
-        print(self.data.mhc_allele.unique())
-        print(self.data.bind_class.value_counts())
+        # print(self.data.mhc_allele.unique())
+        # print(self.data.mhc_amino_acid.unique())
+        # print(self.data.mhc_allele.value_counts().to_dict())
+        # print(self.data.bind_class.value_counts())
 
 
     def save(self, file_name):
