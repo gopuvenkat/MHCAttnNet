@@ -37,7 +37,7 @@ class IEDB(TabularDataset):
         return interleave_keys(len(ex.peptide), len(ex.mhc_amino_acid))
     
     @classmethod
-    def splits(cls, peptide_field, mhc_amino_acid_field, label_field, path="../data/classI/", train="train.csv", validation="val.csv", test="test.csv", **kwargs):
+    def splits(cls, peptide_field, mhc_amino_acid_field, label_field, path=config.base_path, train=config.train_file, validation=config.val_file, test=config.test_file):
         return super(IEDB, cls).splits(
             path=path,
             train=train,
@@ -53,7 +53,7 @@ class IEDB(TabularDataset):
         )
 
     @classmethod
-    def iters(cls, batch_size=64, device=0, shuffle=True, vectors_path="../data/3-gram-vectors.txt", cache_path="../data/"):
+    def iters(cls, batch_size=64, device=0, shuffle=True, vectors_path=config.vectors_path, cache_path=config.cache_path):
         cls.PEPTIDE = Field(sequential=True, tokenize=tokenize_amino_acid, batch_first=True, fix_length=config.PEPTIDE_LENGTH)
         cls.MHC_AMINO_ACID = Field(sequential=True, tokenize=tokenize_amino_acid, batch_first=True, fix_length=config.MHC_AMINO_ACID_LENGTH)
         cls.LABEL = Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float, is_target=True)
@@ -68,8 +68,8 @@ class IEDB(TabularDataset):
         return BucketIterator.splits((train, val, test), batch_size=batch_size, shuffle=shuffle, repeat=False, device=device)
 
 
-def get_dataset(args, device):
-    train_loader, val_loader, test_loader = IEDB.iters(batch_size=args.batch_size, device=device, shuffle=True)
+def get_dataset(device):
+    train_loader, val_loader, test_loader = IEDB.iters(batch_size=config.batch_size, device=device, shuffle=True)
 
     print("Peptide embedding dimension", IEDB.PEPTIDE.vocab.vectors.size())
     peptide_embedding_dim = IEDB.PEPTIDE.vocab.vectors.size()
@@ -86,13 +86,8 @@ def get_dataset(args, device):
     return IEDB, train_loader, val_loader, test_loader, peptide_embedding, mhc_amino_acid_embedding
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Dataloader for MHCAttnNet")
-    parser.add_argument("-p", "--path", help="path to the base directory of the dataset")
-    parser.add_argument("--batch_size", type=int, default=64, help="mention the batch size")
-    args = parser.parse_args()
-
     device = config.device
 
-    dataset_cls, train_loader, val_loader, test_loader, peptide_embedding, mhc_embedding = get_dataset(args, device)
+    dataset_cls, train_loader, val_loader, test_loader, peptide_embedding, mhc_embedding = get_dataset(device)
 
     print(next(iter(train_loader)))
