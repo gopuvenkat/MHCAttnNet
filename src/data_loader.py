@@ -56,7 +56,7 @@ class IEDB(TabularDataset):
     def iters(cls, batch_size=64, device=0, shuffle=True, vectors_path=config.vectors_path, cache_path=config.cache_path):
         cls.PEPTIDE = Field(sequential=True, tokenize=tokenize_amino_acid, batch_first=True, fix_length=config.PEPTIDE_LENGTH)
         cls.MHC_AMINO_ACID = Field(sequential=True, tokenize=tokenize_amino_acid, batch_first=True, fix_length=config.MHC_AMINO_ACID_LENGTH)
-        cls.LABEL = Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float, is_target=True)
+        cls.LABEL = Field(sequential=False, use_vocab=False, batch_first=True, is_target=True)
 
         train, val, test = cls.splits(cls.PEPTIDE, cls.MHC_AMINO_ACID, cls.LABEL)
 
