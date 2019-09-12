@@ -8,7 +8,7 @@ from data_loader import get_dataset
 from model import MHCAttnNet
 import config
 
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -21,7 +21,7 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
         
         y_actual_train = list()
         y_pred_train = list()
-        for row in train_dl:
+        for row in tqdm(train_dl):
             if(row.batch_size == config.batch_size):
                 y_pred = model(row.peptide, row.mhc_amino_acid)
                 y_pred_idx = torch.max(y_pred, dim=1)[1]
@@ -35,11 +35,12 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
         accuracy = accuracy_score(y_actual_train, y_pred_train)
         precision = precision_score(y_actual_train, y_pred_train)
         recall = recall_score(y_actual_train, y_pred_train)
-        print(f"Train - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}")
+        roc_auc = roc_auc_score(y_actual_train, y_pred_train)
+        print(f"Train - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, ROC_AUC : {roc_auc}")
 
         y_actual_val = list()
         y_pred_val = list()
-        for row in val_dl:
+        for row in tqdm(val_dl):
             if(row.batch_size == config.batch_size):
                 y_pred = model(row.peptide, row.mhc_amino_acid)
                 y_pred_idx = torch.max(y_pred, dim=1)[1]
@@ -48,15 +49,18 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
                 y_pred_val += list(y_pred_idx.cpu().data.numpy())
                 loss = loss_fn(y_pred, y_actual)            
         accuracy = accuracy_score(y_actual_val, y_pred_val)
-        precision = precision_score(y_actual_train, y_pred_train)
-        recall = recall_score(y_actual_train, y_pred_train)
-        print(f"Validation - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}")
+        precision = precision_score(y_actual_val, y_pred_val)
+        recall = recall_score(y_actual_val, y_pred_val)
+        roc_auc = roc_auc_score(y_actual_val, y_pred_val)
+        print(f"Validation - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, ROC_AUC : {roc_auc}")
 
         if(epoch%2 == 0):
             torch.save(model.state_dict(), config.model_name)
 
 
 if __name__ == "__main__":
+
+    torch.manual_seed(3)   # for reproducibility
 
     device = config.device
     epochs = config.epochs

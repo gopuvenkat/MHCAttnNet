@@ -18,7 +18,7 @@ class MHCAttnNet(nn.Module):
         super(MHCAttnNet, self).__init__()
         self.hidden_size = config.BiLSTM_HIDDEN_SIZE
         self.peptide_num_layers = config.BiLSTM_PEPTIDE_NUM_LAYERS
-        self.mhc_num_layers = config.BiLSTEM_MHC_NUM_LAYERS
+        self.mhc_num_layers = config.BiLSTM_MHC_NUM_LAYERS
 
         self.peptide_embedding = peptide_embedding
         self.mhc_embedding = mhc_embedding
