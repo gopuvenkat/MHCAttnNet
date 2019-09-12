@@ -21,16 +21,17 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
         
         y_actual_train = list()
         y_pred_train = list()
-        for row in tqdm(train_dl):
-            y_pred = model(row.peptide, row.mhc_amino_acid)
-            y_pred_idx = torch.max(y_pred, dim=1)[1]
-            y_actual = row.bind
-            y_actual_train += list(y_actual.cpu().data.numpy())
-            y_pred_train += list(y_pred_idx.cpu().data.numpy())
-            loss = loss_fn(y_pred, y_actual)
-            opt.zero_grad()
-            loss.backward()
-            optimizer.step()
+        for row in train_dl:
+            if(row.batch_size == config.batch_size):
+                y_pred = model(row.peptide, row.mhc_amino_acid)
+                y_pred_idx = torch.max(y_pred, dim=1)[1]
+                y_actual = row.bind
+                y_actual_train += list(y_actual.cpu().data.numpy())
+                y_pred_train += list(y_pred_idx.cpu().data.numpy())
+                loss = loss_fn(y_pred, y_actual)
+                opt.zero_grad()
+                loss.backward()
+                optimizer.step()
         accuracy = accuracy_score(y_actual_train, y_pred_train)
         precision = precision_score(y_actual_train, y_pred_train)
         recall = recall_score(y_actual_train, y_pred_train)
@@ -38,13 +39,14 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
 
         y_actual_val = list()
         y_pred_val = list()
-        for row in tqdm(val_dl):
-            y_pred = model(row.peptide, row.mhc_amino_acid)
-            y_pred_idx = torch.max(y_pred, dim=1)[1]
-            y_actual = row.bind
-            y_actual_val += list(y_actual.cpu().data.numpy())
-            y_pred_val += list(y_pred_idx.cpu().data.numpy())
-            loss = loss_fn(y_pred, y_actual)            
+        for row in val_dl:
+            if(row.batch_size == config.batch_size):
+                y_pred = model(row.peptide, row.mhc_amino_acid)
+                y_pred_idx = torch.max(y_pred, dim=1)[1]
+                y_actual = row.bind
+                y_actual_val += list(y_actual.cpu().data.numpy())
+                y_pred_val += list(y_pred_idx.cpu().data.numpy())
+                loss = loss_fn(y_pred, y_actual)            
         accuracy = accuracy_score(y_actual_val, y_pred_val)
         precision = precision_score(y_actual_train, y_pred_train)
         recall = recall_score(y_actual_train, y_pred_train)
@@ -61,7 +63,7 @@ if __name__ == "__main__":
 
     dataset_cls, train_loader, val_loader, test_loader, peptide_embedding, mhc_embedding = get_dataset(device)
     model = MHCAttnNet(peptide_embedding, mhc_embedding)
-    model.load_state_dict(torch.load(config.model_name))
+    # model.load_state_dict(torch.load(config.model_name))
     model.to(device)
     print(model)
     loss_fn = nn.CrossEntropyLoss()

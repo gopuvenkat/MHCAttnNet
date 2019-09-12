@@ -14,7 +14,7 @@ from torchtext.data.pipeline import Pipeline
 
 import config
 
-n = 3
+n = config.n
 def tokenize_amino_acid(seq):
     return list(map("".join, zip(*[iter(seq)]*n)))
 

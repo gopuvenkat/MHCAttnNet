@@ -17,15 +17,17 @@ class MHCAttnNet(nn.Module):
     def __init__(self, peptide_embedding, mhc_embedding):
         super(MHCAttnNet, self).__init__()
         self.hidden_size = config.BiLSTM_HIDDEN_SIZE
+        self.peptide_num_layers = config.BiLSTM_PEPTIDE_NUM_LAYERS
+        self.mhc_num_layers = config.BiLSTEM_MHC_NUM_LAYERS
 
         self.peptide_embedding = peptide_embedding
         self.mhc_embedding = mhc_embedding
         self.relu = nn.ReLU()
 
-        self.peptide_lstm = nn.LSTM(config.EMBED_DIM, self.hidden_size, batch_first=True, bidirectional=True)
-        self.mhc_lstm = nn.LSTM(config.EMBED_DIM, self.hidden_size, batch_first=True, bidirectional=True)
-        self.peptide_linear = nn.Linear(self.hidden_size*2, config.LINEAR1_OUT)
-        self.mhc_linear = nn.Linear(self.hidden_size*2, config.LINEAR1_OUT)
+        self.peptide_lstm = nn.LSTM(config.EMBED_DIM, self.hidden_size, num_layers=self.peptide_num_layers, batch_first=True, bidirectional=True)
+        self.mhc_lstm = nn.LSTM(config.EMBED_DIM, self.hidden_size, num_layers=self.mhc_num_layers, batch_first=True, bidirectional=True)
+        self.peptide_linear = nn.Linear(2*self.peptide_num_layers*self.hidden_size, config.LINEAR1_OUT)
+        self.mhc_linear = nn.Linear(2*self.mhc_num_layers*self.hidden_size, config.LINEAR1_OUT)
         self.out_linear = nn.Linear(config.LINEAR1_OUT*2, config.LINEAR2_OUT)
 
     def forward(self, peptide, mhc):
@@ -35,11 +37,11 @@ class MHCAttnNet(nn.Module):
 
         pep_lstm_output, (pep_last_hidden_state, pep_last_cell_state) = self.peptide_lstm(pep_emb)
         mhc_lstm_output, (mhc_last_hidden_state, mhc_last_cell_state) = self.mhc_lstm(mhc_emb)
-        # sen_last_hidden_state = [2, batch_size, hidden_dim]   -> 2 : bidirectional
+        # sen_last_hidden_state = [2*num_layers, batch_size, hidden_dim]   -> 2 : bidirectional
         
         pep_last_hidden_state = pep_last_hidden_state.transpose(0, 1).contiguous().view(config.batch_size, -1)
         mhc_last_hidden_state = mhc_last_hidden_state.transpose(0, 1).contiguous().view(config.batch_size, -1)
-        # sen_last_hidden_state = [batch_size, 2*hidden_dim]    -> 2 : bidirectional
+        # sen_last_hidden_state = [batch_size, 2*num_layers*hidden_dim]    -> 2 : bidirectional
 
         pep_linear_out = self.relu(self.peptide_linear(pep_last_hidden_state))
         mhc_linear_out = self.relu(self.mhc_linear(mhc_last_hidden_state))
