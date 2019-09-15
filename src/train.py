@@ -14,8 +14,17 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
     num_batch = len(train_dl)
+    scores = dict()
+    scores['loss'] = list()
+    scores['accuracy'] = list()
+    scores['precision'] = list()
+    scores['recall'] = list()
+    scores['roc_auc'] = list()
     for epoch in range(1, epochs+1):
         print("Epoch", epoch)
         
@@ -54,8 +63,33 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
         roc_auc = roc_auc_score(y_actual_val, y_pred_val)
         print(f"Validation - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, ROC_AUC : {roc_auc}")
 
+        scores['loss'].append(loss)
+        scores['accuracy'].append(accuracy)
+        scores['precision'].append(precision)
+        scores['recall'].append(recall)
+        scores['roc_auc'].append(roc_auc)
+
         if(epoch%2 == 0):
             torch.save(model.state_dict(), config.model_name)
+
+    return scores
+
+
+def plot(metrics, scores, epochs):
+    x = np.asarray(range(1, epochs+1))
+    i = 0
+    for metric in metrics:
+        try:
+            y = np.asarray(scores[metric])
+        except:
+            print("Metric not found")
+
+        plt.figure(i)
+        plt.plot(x, y)
+        plt.xlabel("epochs")
+        plt.ylabel(metric)
+        plt.savefig('../visualizations/'+metric+'-'+str(epochs)+'.png')
+        i += 1
 
 
 if __name__ == "__main__":
@@ -73,4 +107,7 @@ if __name__ == "__main__":
     loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters())
 
-    fit(model=model, train_dl=train_loader, val_dl=val_loader, loss_fn=loss_fn, opt=optimizer, epochs=epochs, device=device)
+    scores = fit(model=model, train_dl=train_loader, val_dl=val_loader, loss_fn=loss_fn, opt=optimizer, epochs=epochs, device=device)
+
+    metrics = ['loss', 'accuracy', 'precision', 'recall', 'roc_auc']
+    plot(metrics, scores, epochs)
