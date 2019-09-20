@@ -13,20 +13,6 @@ from torch.autograd import Variable
 import torchtext
 
 
-class Attention(nn.Module):
-
-    def __init__(self, attention_size):
-        super(Attention, self).__init__()
-        self.attention = nn.Parameter(torch.FloatTensor(attention_size, 1))
-        torch.nn.init.xavier_normal(self.attention)
-
-    def forward(self, x_in):
-        attention_score = torch.matmul(x_in, self.attention).squeeze()
-        attention_score = F.softmax(attention_score, dim=1).view(x_in.shape[0], x_in.shape[1], 1)
-        scored_x = x_in * attention_score
-        condensed_x = torch.sum(scored_x, dim=1)
-        return condensed_x
-
 class MHCAttnNet(nn.Module):
 
     def __init__(self, peptide_embedding, mhc_embedding):

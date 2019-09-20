@@ -8,7 +8,7 @@ from data_loader import get_dataset
 from model import MHCAttnNet
 import config
 
-from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, average_precision_score, f1_score
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -44,8 +44,10 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
         accuracy = accuracy_score(y_actual_train, y_pred_train)
         precision = precision_score(y_actual_train, y_pred_train)
         recall = recall_score(y_actual_train, y_pred_train)
+        f1 = f1_score(y_actual_train, y_pred_train)
         roc_auc = roc_auc_score(y_actual_train, y_pred_train)
-        print(f"Train - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, ROC_AUC : {roc_auc}")
+        auc_rpc = average_precision_score(y_actual_train, y_pred_train)
+        print(f"Train - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, F1-score : {f1}, ROC_AUC : {roc_auc}, AuRpC : {auc_rpc}")
 
         y_actual_val = list()
         y_pred_val = list()
@@ -60,8 +62,10 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
         accuracy = accuracy_score(y_actual_val, y_pred_val)
         precision = precision_score(y_actual_val, y_pred_val)
         recall = recall_score(y_actual_val, y_pred_val)
+        f1 = f1_score(y_actual_val, y_pred_val)
         roc_auc = roc_auc_score(y_actual_val, y_pred_val)
-        print(f"Validation - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, ROC_AUC : {roc_auc}")
+        auc_rpc = average_precision_score(y_actual_val, y_pred_val)
+        print(f"Validation - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, F1-score : {f1}, ROC_AUC : {roc_auc}, AuRpC : {auc_rpc}")
 
         scores['loss'].append(loss)
         scores['accuracy'].append(accuracy)
