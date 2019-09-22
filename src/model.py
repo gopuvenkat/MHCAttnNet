@@ -28,10 +28,8 @@ class MHCAttnNet(nn.Module):
 
         self.peptide_lstm = nn.LSTM(config.EMBED_DIM, self.hidden_size, num_layers=self.peptide_num_layers, batch_first=True, bidirectional=True)
         self.mhc_lstm = nn.LSTM(config.EMBED_DIM, self.hidden_size, num_layers=self.mhc_num_layers, batch_first=True, bidirectional=True)
-        # self.pep_attention = Attention(2*self.hidden_size)
-        # self.mhc_attention = Attention(2*self.hidden_size)
-        self.peptide_linear = nn.Linear(2*self.hidden_size, config.LINEAR1_OUT)
-        self.mhc_linear = nn.Linear(2*self.hidden_size, config.LINEAR1_OUT)
+        self.peptide_linear = nn.Linear(2*self.peptide_num_layers*self.hidden_size, config.LINEAR1_OUT)
+        self.mhc_linear = nn.Linear(2*self.mhc_num_layers*self.hidden_size, config.LINEAR1_OUT)
         self.out_linear = nn.Linear(config.LINEAR1_OUT*2, config.LINEAR2_OUT)
 
     def attention(self, rnn_out, state):
@@ -54,11 +52,13 @@ class MHCAttnNet(nn.Module):
         # sen_lstm_output = [batch_size, seq_len, 2*hidden_dim]            -> 2 : bidirectional
         # sen_last_hidden_state = [2*num_layers, batch_size, hidden_dim]   -> 2 : bidirectional
 
-        # pep_attn_linear_inp = self.pep_attention(pep_lstm_output)
-        # mhc_attn_linear_inp = self.mhc_attention(mhc_lstm_output)
+        # With Attention
+        # pep_attn_linear_inp = self.attention(pep_lstm_output, pep_last_hidden_state)
+        # mhc_attn_linear_inp = self.attention(mhc_lstm_output, mhc_last_hidden_state)
 
-        pep_attn_linear_inp = self.attention(pep_lstm_output, pep_last_hidden_state)
-        mhc_attn_linear_inp = self.attention(mhc_lstm_output, mhc_last_hidden_state)
+        # Without Attention
+        pep_attn_linear_inp = pep_last_hidden_state.transpose(0, 1).contiguous().view(config.batch_size, -1)
+        mhc_attn_linear_inp = mhc_last_hidden_state.transpose(0, 1).contiguous().view(config.batch_size, -1)
 
         pep_linear_out = self.relu(self.peptide_linear(pep_attn_linear_inp))
         mhc_linear_out = self.relu(self.mhc_linear(mhc_attn_linear_inp))
