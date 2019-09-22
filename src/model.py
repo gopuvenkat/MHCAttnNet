@@ -53,12 +53,12 @@ class MHCAttnNet(nn.Module):
         # sen_last_hidden_state = [2*num_layers, batch_size, hidden_dim]   -> 2 : bidirectional
 
         # With Attention
-        # pep_attn_linear_inp = self.attention(pep_lstm_output, pep_last_hidden_state)
-        # mhc_attn_linear_inp = self.attention(mhc_lstm_output, mhc_last_hidden_state)
+        pep_attn_linear_inp = self.attention(pep_lstm_output, pep_last_hidden_state)
+        mhc_attn_linear_inp = self.attention(mhc_lstm_output, mhc_last_hidden_state)
 
         # Without Attention
-        pep_attn_linear_inp = pep_last_hidden_state.transpose(0, 1).contiguous().view(config.batch_size, -1)
-        mhc_attn_linear_inp = mhc_last_hidden_state.transpose(0, 1).contiguous().view(config.batch_size, -1)
+        # pep_attn_linear_inp = pep_last_hidden_state.transpose(0, 1).contiguous().view(config.batch_size, -1)
+        # mhc_attn_linear_inp = mhc_last_hidden_state.transpose(0, 1).contiguous().view(config.batch_size, -1)
 
         pep_linear_out = self.relu(self.peptide_linear(pep_attn_linear_inp))
         mhc_linear_out = self.relu(self.mhc_linear(mhc_attn_linear_inp))

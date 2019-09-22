@@ -7,12 +7,12 @@ import torchtext
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 n = 3
-epochs = 20
+epochs = 3
 batch_size = 32
 model_name = "../data/models/v1-classI.pt"
 vectors_path = "../data/3-gram-vectors.txt"
 cache_path = "../data/"
-base_path = "../data/classI/"
+base_path = "../data/small_classI/"
 train_file = "train.csv"
 val_file = "val.csv"
 test_file = "test.csv"
