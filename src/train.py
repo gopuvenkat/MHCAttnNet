@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     device = config.device
     epochs = config.epochs
-
+    print(device)
     dataset_cls, train_loader, val_loader, test_loader, peptide_embedding, mhc_embedding = get_dataset(device)
     model = MHCAttnNet(peptide_embedding, mhc_embedding)
     # model.load_state_dict(torch.load(config.model_name))
