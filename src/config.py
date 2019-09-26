@@ -7,7 +7,7 @@ import torchtext
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 n = 3
-epochs = 3
+epochs = 2
 batch_size = 32
 model_name = "../data/models/v1-classI.pt"
 vectors_path = "../data/3-gram-vectors.txt"
