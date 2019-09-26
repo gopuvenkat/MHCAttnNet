@@ -16,7 +16,8 @@ import config
 
 n = config.n
 def tokenize_amino_acid(seq):
-    return list(map("".join, zip(*[iter(seq)]*n)))
+    tokens = list(map("".join, zip(*[iter(seq)]*n)))
+    return tokens
 
 class IEDB(TabularDataset):
 

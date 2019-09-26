@@ -12,75 +12,70 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import torchtext
 
-
-class Attention(nn.Module):
-    def __init__(self, feature_dim, step_dim, context_dim):
-        super(Attention, self).__init__()
-        self.feature_dim = feature_dim
-        self.step_dim = step_dim
-        self.context_dim = context_dim
-        self.tanh = nn.Tanh()
-
-        weight = torch.zeros(feature_dim, context_dim)
-        nn.init.kaiming_uniform_(weight)
-        self.weight = nn.Parameter(weight)
-        self.b = nn.Parameter(torch.zeros(step_dim, context_dim))
-
-        u = torch.zeros(context_dim, 1)
-        nn.init.kaiming_uniform_(u)
-        self.context_vector = nn.Parameter(u)
-
-    def forward(self, x):
-        eij = torch.matmul(x, self.weight)
-        eij = self.tanh(torch.add(eij, self.b))
-        v = torch.exp(torch.matmul(eij, self.context_vector))  # dot product
-        v = v / (torch.sum(v, dim=1, keepdim=True))
-        weighted_input = x * v
-        s = torch.sum(weighted_input, dim=1)
-        return s
-
 class MHCAttnNet(nn.Module):
 
     def __init__(self, peptide_embedding, mhc_embedding):
         super(MHCAttnNet, self).__init__()
-        self.hidden_size = config.BiLSTM_HIDDEN_SIZE
-        self.peptide_num_layers = config.BiLSTM_PEPTIDE_NUM_LAYERS
-        self.mhc_num_layers = config.BiLSTM_MHC_NUM_LAYERS
 
         self.peptide_embedding = peptide_embedding
         self.mhc_embedding = mhc_embedding
+
+        self.pep_conv1 = nn.Conv1d(config.EMBED_DIM, config.OUTPUT_DIM1, kernel_size=config.PEP_KERNEL_CONV1)
+        self.mhc_conv1 = nn.Conv1d(config.EMBED_DIM, config.OUTPUT_DIM1, kernel_size=config.MHC_KERNEL_CONV1)
+
+        self.conv2_1 = nn.Conv2d(config.OUTPUT_DIM1, config.OUTPUT_DIM2_1, kernel_size=config.KERNEL_CONV2_1,
+                                 stride=config.STRIDE_CONV2_1)
+        self.conv2_2 = nn.Conv2d(config.OUTPUT_DIM2_1, config.OUTPUT_DIM2_2, kernel_size=config.KERNEL_CONV2_2,
+                                 stride=config.STRIDE_CONV2_2)
+        self.conv2_3 = nn.Conv2d(config.OUTPUT_DIM2_2, config.OUTPUT_DIM2_3, kernel_size=config.KERNEL_CONV2_3,
+                                 stride=config.STRIDE_CONV2_3)
+        self.conv2_4 = nn.Conv2d(config.OUTPUT_DIM2_3, config.OUTPUT_DIM2_4, kernel_size=config.KERNEL_CONV2_4,
+                                 stride=config.STRIDE_CONV2_4)
+        self.conv2_5 = nn.Conv2d(config.OUTPUT_DIM2_4, config.OUTPUT_DIM2_5, kernel_size=config.KERNEL_CONV2_5,
+                                 stride=config.STRIDE_CONV2_5)
+        self.conv2_6 = nn.Conv2d(config.OUTPUT_DIM2_5, config.OUTPUT_DIM2_6, kernel_size=config.KERNEL_CONV2_6,
+                                 stride=config.STRIDE_CONV2_6)
+
+        self.mhc_spatial_conv3_1 = nn.Conv1d(config.EMBED_DIM, config.OUTPUT_DIM3_1, kernel_size=config.MHC_KERNEL_CONV3_1, stride=config.MHC_STRIDE_CONV3_1)
+        self.mhc_spatial_conv3_2 = nn.Conv1d(config.OUTPUT_DIM3_1, config.OUTPUT_DIM3_2,
+                                             kernel_size=config.MHC_KERNEL_CONV3_2, stride=config.MHC_STRIDE_CONV3_2)
+
         self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(p=0.5)
+        # self.dropout = nn.Dropout(p=0.5)
 
-        self.peptide_lstm = nn.LSTM(config.EMBED_DIM, self.hidden_size, num_layers=self.peptide_num_layers, batch_first=True, bidirectional=True)
-        self.mhc_lstm = nn.LSTM(config.EMBED_DIM, self.hidden_size, num_layers=self.mhc_num_layers, batch_first=True, bidirectional=True)
-
-        self.peptide_attn = Attention(2*self.hidden_size, config.PEPTIDE_LENGTH, config.CONTEXT_DIM)
-        self.mhc_attn = Attention(2*self.hidden_size, config.MHC_AMINO_ACID_LENGTH, config.CONTEXT_DIM)
-
-        self.peptide_linear = nn.Linear(2*self.peptide_num_layers*self.hidden_size, config.LINEAR1_OUT)
-        self.mhc_linear = nn.Linear(2*self.mhc_num_layers*self.hidden_size, config.LINEAR1_OUT)
-        self.out_linear = nn.Linear(config.LINEAR1_OUT*2, config.LINEAR2_OUT)
+        self.out_linear = nn.Linear(6944, config.LINEAR_OUT) # input shape = shape(concatenate(mhc_spatial, linear(conv2)))
 
     def forward(self, peptide, mhc):
         pep_emb = self.peptide_embedding(peptide)        
         mhc_emb = self.mhc_embedding(mhc)
         # sen_emb = [batch_size, seq_len, emb_dim]
 
-        pep_lstm_output, (pep_last_hidden_state, pep_last_cell_state) = self.peptide_lstm(pep_emb)
-        mhc_lstm_output, (mhc_last_hidden_state, mhc_last_cell_state) = self.mhc_lstm(mhc_emb)
-        # sen_lstm_output = [batch_size, seq_len, 2*hidden_dim]            -> 2 : bidirectional
-        # sen_last_hidden_state = [2*num_layers, batch_size, hidden_dim]   -> 2 : bidirectional
+        pep_emb = pep_emb.transpose(1, 2)
+        mhc_emb = mhc_emb.transpose(1, 2)
 
-        pep_attn_linear_inp = self.peptide_attn(pep_lstm_output)
-        mhc_attn_linear_inp = self.mhc_attn(mhc_lstm_output)
-        
-        pep_linear_out = self.relu(self.peptide_linear(pep_attn_linear_inp))
-        mhc_linear_out = self.relu(self.mhc_linear(mhc_attn_linear_inp))
-        # sen_linear_out = [batch_size, LINEAR1_OUT]
+        mhc_spatial_out = self.relu(self.mhc_spatial_conv3_1(mhc_emb))
+        mhc_spatial_out = self.relu(self.mhc_spatial_conv3_2(mhc_spatial_out))
+        mhc_spatial_out = mhc_spatial_out.view(config.batch_size, -1)
 
-        conc = torch.cat((pep_linear_out, mhc_linear_out), dim=1)
-        # conc = [batch_size, 2*LINEAR1_OUT]
+        pep_conv_output = self.relu(self.pep_conv1(pep_emb))
+        mhc_conv_output = self.relu(self.mhc_conv1(mhc_emb))
+        pep_conv_output = pep_conv_output.transpose(1, 2)
+        mhc_conv_output = mhc_conv_output.transpose(1, 2)
+
+        pep_conv_output = pep_conv_output.unsqueeze(1)
+        mhc_conv_output = mhc_conv_output.unsqueeze(2)
+
+        image_out = mhc_conv_output + pep_conv_output
+
+        image_out = image_out.transpose(1, 3)
+        conv2_out = self.relu(self.conv2_1(image_out))
+        conv2_out = self.relu(self.conv2_2(conv2_out))
+        conv2_out = self.relu(self.conv2_3(conv2_out))
+        conv2_out = self.relu(self.conv2_4(conv2_out))
+        conv2_out = self.relu(self.conv2_5(conv2_out))
+        conv2_out = self.relu(self.conv2_6(conv2_out))
+        conv2_out = conv2_out.view(config.batch_size, -1)
+
+        conc = torch.cat((conv2_out, mhc_spatial_out), dim=1)
         out = self.relu(self.out_linear(conc))
-        # out = [batch_size, LINEAR2_OUT]
         return out
