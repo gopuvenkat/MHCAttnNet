@@ -77,7 +77,7 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
         writer.add_scalar('F1/val', f1, epoch)
         writer.add_scalar('ROC_AUC/val', roc_auc, epoch)
         writer.add_scalar('PRC_AUC/val', prc_auc, epoch)
-        writer.add_pr_curve('PR_Curve/val', np.asarray(y_actual_train), np.asarray(y_pred_train))
+        writer.add_pr_curve('PR_Curve/val', np.asarray(y_actual_val), np.asarray(y_pred_val))
         print(f"Validation - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, F1-score : {f1}, ROC_AUC : {roc_auc}, PRC_AUC : {prc_auc}")
 
         if epoch % 2 == 0:
@@ -85,16 +85,17 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device):
 
 
 if __name__ == "__main__":
-    torch.manual_seed(3)  # for reproducibility
+    torch.manual_seed(42)  # for reproducibility
 
     device = config.device
     epochs = config.epochs
-    print(device)
     dataset_cls, train_loader, val_loader, test_loader, peptide_embedding, mhc_embedding = get_dataset(device)
     model = MHCAttnNet(peptide_embedding, mhc_embedding)
     # model.load_state_dict(torch.load(config.model_name))
     model.to(device)
     print(model)
+    print('Total parameters', sum(p.numel() for p in model.parameters()))
+    print('Trainable parameters', sum(p.numel() for p in model.parameters() if p.requires_grad))
     loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters())
 
