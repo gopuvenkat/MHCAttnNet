@@ -58,9 +58,10 @@ class MHCAttnNet(nn.Module):
         self.peptide_attn = Attention(2*self.hidden_size, config.PEPTIDE_LENGTH, config.CONTEXT_DIM)
         self.mhc_attn = Attention(2*self.hidden_size, config.MHC_AMINO_ACID_LENGTH, config.CONTEXT_DIM)
 
-        self.peptide_linear = nn.Linear(2*self.peptide_num_layers*self.hidden_size, config.LINEAR1_OUT)
-        self.mhc_linear = nn.Linear(2*self.mhc_num_layers*self.hidden_size, config.LINEAR1_OUT)
-        self.out_linear = nn.Linear(config.LINEAR1_OUT*2, config.LINEAR2_OUT)
+        self.peptide_linear = nn.Linear(2*self.hidden_size, config.LINEAR1_OUT)
+        self.mhc_linear = nn.Linear(2*self.hidden_size, config.LINEAR1_OUT)
+        self.hidden_linear = nn.Linear(2*config.LINEAR1_OUT, config.LINEAR1_OUT)
+        self.out_linear = nn.Linear(config.LINEAR1_OUT, config.LINEAR2_OUT)
 
     def forward(self, peptide, mhc):
         pep_emb = self.peptide_embedding(peptide)        
@@ -74,6 +75,7 @@ class MHCAttnNet(nn.Module):
 
         pep_attn_linear_inp = self.peptide_attn(pep_lstm_output)
         mhc_attn_linear_inp = self.mhc_attn(mhc_lstm_output)
+        # sen_attn_linear_inp = [batch_size, 2*hidden_dim]                 -> 2 : bidirectional
         
         pep_linear_out = self.relu(self.peptide_linear(pep_attn_linear_inp))
         mhc_linear_out = self.relu(self.mhc_linear(mhc_attn_linear_inp))
@@ -81,6 +83,6 @@ class MHCAttnNet(nn.Module):
 
         conc = torch.cat((pep_linear_out, mhc_linear_out), dim=1)
         # conc = [batch_size, 2*LINEAR1_OUT]
-        out = self.relu(self.out_linear(conc))
+        out = self.relu(self.out_linear(self.hidden_linear(conc)))
         # out = [batch_size, LINEAR2_OUT]
         return out
