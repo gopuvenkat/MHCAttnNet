@@ -24,6 +24,15 @@ class IEDB(TabularDataset):
 
     def __init__(self, path, format, fields, skip_header=True, **kwargs):
         super(IEDB, self).__init__(path, format, fields, skip_header, **kwargs)
+
+        # keep a raw copy of the sentence for debugging
+        RAW_TEXT_FIELD = RawField()
+        for ex in self.examples:
+            raw_peptide, raw_mhc_amino_acid = ex.peptide[:], ex.mhc_amino_acid[:]
+            setattr(ex, "raw_peptide", raw_peptide) 
+            setattr(ex, "raw_mhc_amino_acid", raw_mhc_amino_acid)
+        self.fields["raw_peptide"] = RAW_TEXT_FIELD
+        self.fields["raw_mhc_amino_acid"] = RAW_TEXT_FIELD
     
     @staticmethod
     def sort_key(ex):

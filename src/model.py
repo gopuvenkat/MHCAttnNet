@@ -32,11 +32,17 @@ class Attention(nn.Module):
 
     def forward(self, x):
         eij = torch.matmul(x, self.weight)
+        # eij = [batch_size, seq_len, context_dim]
         eij = self.tanh(torch.add(eij, self.b))
+        # eij = [batch_size, seq_len, context_dim]
         v = torch.exp(torch.matmul(eij, self.context_vector))  # dot product
+        # v = [batch_size, seq_len, 1]
         v = v / (torch.sum(v, dim=1, keepdim=True))
+        # v = [batch_size, seq_len, 1]
         weighted_input = x * v
+        # weighted_input = [batch_size, seq_len, 2*hidden_dim]             -> 2 : bidirectional
         s = torch.sum(weighted_input, dim=1)
+        # s = [batch_size, 2*hidden_dim]                                   -> 2 : bidirectional
         return s
 
 class MHCAttnNet(nn.Module):

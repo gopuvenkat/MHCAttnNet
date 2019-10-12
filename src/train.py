@@ -150,8 +150,8 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device, val=False):
             writer.add_pr_curve('PR_Curve/test', np.asarray(y_actual_test), np.asarray(y_pred_test))
             print(f"Test - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, F1-score : {f1}, ROC_AUC : {roc_auc}, PRC_AUC : {prc_auc}")
 
-        if epoch % 5 == 0:
-            torch.save(model.state_dict(), config.model_name)
+            if epoch % 5 == 0:
+                torch.save(model.state_dict(), config.model_name)
 
 
 if __name__ == "__main__":
