@@ -20,7 +20,7 @@ import numpy as np
 
 writer = SummaryWriter()
 
-def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device, val=False):
+def fit(model, train_dl, val_dl, test_dl, loss_fn, opt, epochs, device, val=False):
     if(val == True):
         for epoch in range(epochs):
             print("Epoch", epoch)
@@ -105,6 +105,7 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device, val=False):
                     y_pred_train += list(y_pred_idx.cpu().data.numpy())
                     loss = loss_fn(y_pred, y_actual)
                     opt.zero_grad()
+                    loss.backward()
                     optimizer.step()
             accuracy = accuracy_score(y_actual_train, y_pred_train)
             precision = precision_score(y_actual_train, y_pred_train)
@@ -125,7 +126,7 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device, val=False):
 
             y_actual_test = list()
             y_pred_test = list()
-            for row in tqdm(val_dl):
+            for row in tqdm(test_dl):
                 if row.batch_size == config.batch_size:
                     y_pred = model(row.peptide, row.mhc_amino_acid)
                     y_pred_idx = torch.max(y_pred, dim=1)[1]
@@ -150,7 +151,7 @@ def fit(model, train_dl, val_dl, loss_fn, opt, epochs, device, val=False):
             writer.add_pr_curve('PR_Curve/test', np.asarray(y_actual_test), np.asarray(y_pred_test))
             print(f"Test - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, F1-score : {f1}, ROC_AUC : {roc_auc}, PRC_AUC : {prc_auc}")
 
-            if epoch % 5 == 0:
+            if epoch % 1 == 0:
                 torch.save(model.state_dict(), config.model_name)
 
 
@@ -169,6 +170,6 @@ if __name__ == "__main__":
     loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters())
 
-    fit(model=model, train_dl=train_loader, val_dl=val_loader, loss_fn=loss_fn, opt=optimizer, epochs=epochs, device=device)
+    fit(model=model, train_dl=train_loader, val_dl=val_loader, test_dl=test_loader, loss_fn=loss_fn, opt=optimizer, epochs=epochs, device=device)
 
 writer.close()
