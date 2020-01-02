@@ -8,7 +8,8 @@ from data_loader import get_dataset
 from model import MHCAttnNet
 import config
 
-from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, average_precision_score, f1_score, precision_recall_curve
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, average_precision_score, f1_score, precision_recall_curve, confusion_matrix
+from scipy.stats import pearsonr
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -45,6 +46,10 @@ def fit(model, train_dl, val_dl, test_dl, loss_fn, opt, epochs, device, val=Fals
             f1 = f1_score(y_actual_train, y_pred_train)
             roc_auc = roc_auc_score(y_actual_train, y_pred_train)
             prc_auc = average_precision_score(y_actual_train, y_pred_train)
+            pcc, p = pearsonr(y_actual_train, y_pred_train)
+            tn, fp, fn, tp = confusion_matrix(y_actual_train, y_pred_train).ravel()
+            sensitivity = float(tp)/(tp+fn)
+            PPV = float(tp)/(tp+fp)
             # p_train, r_train, _ = precision_recall_curve(y_actual_train, y_pred_train)
             writer.add_scalar('Loss/train', total_loss, epoch)
             writer.add_scalar('Accuracy/train', accuracy, epoch)
@@ -53,8 +58,11 @@ def fit(model, train_dl, val_dl, test_dl, loss_fn, opt, epochs, device, val=Fals
             writer.add_scalar('F1/train', f1, epoch)
             writer.add_scalar('ROC_AUC/train', roc_auc, epoch)
             writer.add_scalar('PRC_AUC/train', prc_auc, epoch)
+            writer.add_scalar('PCC/train', pcc, epoch)
+            writer.add_scalar('Sensitivity/train', sensitivity, epoch)
+            writer.add_scalar('PPV/train', PPV, epoch)
             writer.add_pr_curve('PR_Curve/train', np.asarray(y_actual_train), np.asarray(y_pred_train))
-            print(f"Train - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, F1-score : {f1}, ROC_AUC : {roc_auc}, PRC_AUC : {prc_auc}")
+            print(f"Train - Loss: {loss}, Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1-score: {f1}, ROC_AUC: {roc_auc}, PRC_AUC: {prc_auc}, PCC: {pcc}, Sensitivity: {sensitivity}, PPV: {PPV}")
 
             total_loss = 0
             y_actual_val = list()
@@ -74,6 +82,10 @@ def fit(model, train_dl, val_dl, test_dl, loss_fn, opt, epochs, device, val=Fals
             f1 = f1_score(y_actual_val, y_pred_val)
             roc_auc = roc_auc_score(y_actual_val, y_pred_val)
             prc_auc = average_precision_score(y_actual_val, y_pred_val)
+            pcc, p = pearsonr(y_actual_val, y_pred_val)
+            tn, fp, fn, tp = confusion_matrix(y_actual_val, y_pred_val).ravel()
+            sensitivity = float(tp)/(tp+fn)
+            PPV = float(tp)/(tp+fp)
             # p_val, r_val, _ = precision_recall_curve(y_actual_val, y_pred_val)
             writer.add_scalar('Loss/val', total_loss, epoch)
             writer.add_scalar('Accuracy/val', accuracy, epoch)
@@ -82,8 +94,11 @@ def fit(model, train_dl, val_dl, test_dl, loss_fn, opt, epochs, device, val=Fals
             writer.add_scalar('F1/val', f1, epoch)
             writer.add_scalar('ROC_AUC/val', roc_auc, epoch)
             writer.add_scalar('PRC_AUC/val', prc_auc, epoch)
+            writer.add_scalar('PCC/val', pcc, epoch)
+            writer.add_scalar('Sensitivity/val', sensitivity, epoch)
+            writer.add_scalar('PPV/val', PPV, epoch)
             writer.add_pr_curve('PR_Curve/val', np.asarray(y_actual_val), np.asarray(y_pred_val))
-            print(f"Validation - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, F1-score : {f1}, ROC_AUC : {roc_auc}, PRC_AUC : {prc_auc}")
+            print(f"Validation - Loss: {total_loss}, Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1-score: {f1}, ROC_AUC: {roc_auc}, PRC_AUC: {prc_auc}, PCC: {pcc}, Sensitivity: {sensitivity}, PPV: {PPV}")
     else:
         for epoch in range(epochs):
             print("Epoch", epoch)
@@ -120,6 +135,10 @@ def fit(model, train_dl, val_dl, test_dl, loss_fn, opt, epochs, device, val=Fals
             f1 = f1_score(y_actual_train, y_pred_train)
             roc_auc = roc_auc_score(y_actual_train, y_pred_train)
             prc_auc = average_precision_score(y_actual_train, y_pred_train)
+            pcc, p = pearsonr(y_actual_train, y_pred_train)
+            tn, fp, fn, tp = confusion_matrix(y_actual_train, y_pred_train).ravel()
+            sensitivity = float(tp)/(tp+fn)
+            PPV = float(tp)/(tp+fp)
             # p_val, r_val, _ = precision_recall_curve(y_actual_train, y_pred_train)
             writer.add_scalar('Loss/train', total_loss, epoch)
             writer.add_scalar('Accuracy/train', accuracy, epoch)
@@ -128,8 +147,11 @@ def fit(model, train_dl, val_dl, test_dl, loss_fn, opt, epochs, device, val=Fals
             writer.add_scalar('F1/train', f1, epoch)
             writer.add_scalar('ROC_AUC/train', roc_auc, epoch)
             writer.add_scalar('PRC_AUC/train', prc_auc, epoch)
+            writer.add_scalar('PCC/train', pcc, epoch)
+            writer.add_scalar('Sensitivity/train', sensitivity, epoch)
+            writer.add_scalar('PPV/train', PPV, epoch)
             writer.add_pr_curve('PR_Curve/train', np.asarray(y_actual_train), np.asarray(y_pred_train))
-            print(f"Train - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, F1-score : {f1}, ROC_AUC : {roc_auc}, PRC_AUC : {prc_auc}")
+            print(f"Train - Loss: {total_loss}, Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1-score: {f1}, ROC_AUC: {roc_auc}, PRC_AUC: {prc_auc}, PCC: {pcc}, Sensitivity: {sensitivity}, PPV: {PPV}")
 
             total_loss = 0
             y_actual_test = list()
@@ -149,6 +171,9 @@ def fit(model, train_dl, val_dl, test_dl, loss_fn, opt, epochs, device, val=Fals
             f1 = f1_score(y_actual_test, y_pred_test)
             roc_auc = roc_auc_score(y_actual_test, y_pred_test)
             prc_auc = average_precision_score(y_actual_test, y_pred_test)
+            pcc, p = pearsonr(y_actual_test, y_pred_test)
+            tn, fp, fn, tp = confusion_matrix(y_actual_test, y_pred_test).ravel()
+            sensitivity = float(tp)/(tp+fn)
             # p_val, r_val, _ = precision_recall_curve(y_actual_test, y_pred_test)
             writer.add_scalar('Loss/test', total_loss, epoch)
             writer.add_scalar('Accuracy/test', accuracy, epoch)
@@ -157,8 +182,11 @@ def fit(model, train_dl, val_dl, test_dl, loss_fn, opt, epochs, device, val=Fals
             writer.add_scalar('F1/test', f1, epoch)
             writer.add_scalar('ROC_AUC/test', roc_auc, epoch)
             writer.add_scalar('PRC_AUC/test', prc_auc, epoch)
+            writer.add_scalar('PCC/test', pcc, epoch)
+            writer.add_scalar('Sensitivity/test', sensitivity, epoch)
+            writer.add_scalar('PPV/test', PPV, epoch)
             writer.add_pr_curve('PR_Curve/test', np.asarray(y_actual_test), np.asarray(y_pred_test))
-            print(f"Test - Loss : {loss}, Accuracy : {accuracy}, Precision : {precision}, Recall : {recall}, F1-score : {f1}, ROC_AUC : {roc_auc}, PRC_AUC : {prc_auc}")
+            print(f"Test - Loss: {total_loss}, Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1-score: {f1}, ROC_AUC: {roc_auc}, PRC_AUC: {prc_auc}, PCC: {pcc}, Sensitivity: {sensitivity}, PPV: {PPV}")
 
             if epoch % config.ckpt_num == 0:
                 torch.save(model.state_dict(), config.model_name)
