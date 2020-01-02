@@ -6,18 +6,19 @@ import torchtext
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+ckpt_num = 5 # save model after n epochs
 epochs = 25
 batch_size = 32
-model_name = "../data/models/classI/config1/val1.pt"
+model_name = "../data/models/classI/check.pt"
 pep_n = 1
 mhc_n = 3
 pep_vectors_path = "../data/1-gram-vectors.txt" # set based on pep_n
 mhc_vectors_path = "../data/3-gram-vectors.txt" # set based on mhc_n
 cache_path = "../data/"
-base_path = "../data/5_cross_val/classI/"
-train_file = "1_train.csv"
-val_file = "1_val.csv"
-test_file = "1_test.csv"
+base_path = "../data/classI/"
+train_file = "train.csv"
+val_file = "val.csv"
+test_file = "test.csv"
 
 EMBED_DIM = 100 # change only after re-training the vectors in the new space
 PEPTIDE_LENGTH = 45 # set based on pep_n
