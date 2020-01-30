@@ -9,6 +9,9 @@ MHCAttnNet uses a gated Recurrent Neural Network (RNN) styled encoder to deal wi
 
 ## Environment Setup
 
+## Dataset
+The dataset used for the experiments is maintained at [figshare](https://figshare.com/articles/dataset_zip/11770902).
+
 ## Pre-process
 `python ./src/preprocess.py -f [INPUT_FILE_NAME] -o [OUTPUT_FILE_NAME]`
 
