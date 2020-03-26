@@ -120,7 +120,7 @@ python-slugify==1.2.6
 pytorch-pretrained-bert==0.6.2
 pytz==2018.5
 PyWavelets==1.0.2
-PyYAML==3.13
+PyYAML==5.1
 pyzmq==17.1.2
 rake-nltk==1.0.4
 regex==2019.8.19
