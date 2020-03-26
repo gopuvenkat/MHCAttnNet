@@ -9,6 +9,10 @@ MHCAttnNet uses a Bi-directional Long Short Term Memory (Bi-LSTM) styled encoder
 
 ## Environment Setup
 
+```
+$ pip install -r requirements.txt
+```
+
 ## Dataset
 The dataset used for the experiments is maintained at [figshare](https://figshare.com/articles/dataset_zip/11770902).
 
