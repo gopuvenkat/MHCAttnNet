@@ -10,16 +10,16 @@ MHCAttnNet uses a Bi-directional Long Short Term Memory (Bi-LSTM) styled encoder
 ## Environment Setup
 
 ```
-$ pip install -r requirements.txt
+$ conda env create -f environment.yml
 ```
 
 ## Dataset
 The dataset used for the experiments is maintained at [figshare](https://figshare.com/articles/dataset_zip/11770902).
 
 ## Pre-process
-`python ./src/preprocess.py -f [INPUT_FILE_NAME] -o [OUTPUT_FILE_NAME]`
-
-where - 
+```
+$ (pytorch_p36) python src/preprocess.py -f [INPUT_FILE_NAME] -o [OUTPUT_FILE_NAME]
+```
 
 `INPUT_FILE_NAME` - The input .csv file having same columns as [IEDB](https://www.iedb.org/).
 
@@ -28,8 +28,10 @@ where -
 The output file needs to split into `train.csv` , `val.csv` and `test.csv`.
 
 ## Training
-First, one needs to change paths in `./src/config.py`, especially paths for vector embeddings and paths to the pre-processed data file.
+First, one needs to change paths in `src/config.py`, especially paths for vector embeddings and paths to the pre-processed data file.
 
 Once, that is done, run the following command - 
 
-`python ./src/train.py`
+```
+$ (pytorch_p36) python src/train.py
+```
