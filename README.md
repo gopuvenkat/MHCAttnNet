@@ -35,3 +35,22 @@ Once, that is done, run the following command -
 ```
 $ (pytorch_p36) python src/train.py
 ```
+
+If you use these resources and methods, please cite the following paper:
+
+```
+@article{10.1093/bioinformatics/btaa479,
+    author = {Venkatesh, Gopalakrishnan and Grover, Aayush and Srinivasaraghavan, G and Rao, Shrisha},
+    title = "{MHCAttnNet: predicting MHC-peptide bindings for MHC alleles classes I and II using an attention-based deep neural model}",
+    journal = {Bioinformatics},
+    volume = {36},
+    number = {Supplement_1},
+    pages = {i399-i406},
+    year = {2020},
+    month = {07},
+    issn = {1367-4803},
+    doi = {10.1093/bioinformatics/btaa479},
+    url = {https://doi.org/10.1093/bioinformatics/btaa479},
+    eprint = {https://academic.oup.com/bioinformatics/article-pdf/36/Supplement\_1/i399/33488968/btaa479.pdf},
+}
+```
